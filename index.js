@@ -1,6 +1,7 @@
 // Main imports
 import express from "express";
 import bodyParser from "body-parser";
+import cors from "cors";
 
 // MongoDB imports
 import { MongoClient, ServerApiVersion } from "mongodb";
@@ -11,6 +12,7 @@ const port = 3001;
 const app = express();
 
 app.use(bodyParser.json());
+app.use(cors());
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -85,9 +87,10 @@ async function run() {
     app.get("/search/single/:id", async (req, res) => {
       const id = parseInt(req.params.id);
 
-      const recipe = await collection.find({ id: id }).toArray();
+      const recipe = await collection.findOne({ id: id });
+      await collection.updateOne({ id: id }, { $inc: {request: 1} });
 
-      if(recipe) {
+      if (recipe) {
         res.status(200).send(recipe);
       } else {
         res.status(404).send("No recipe found");
